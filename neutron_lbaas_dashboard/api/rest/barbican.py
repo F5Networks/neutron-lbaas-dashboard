@@ -31,16 +31,20 @@ from openstack_dashboard.api.rest import utils as rest_utils
 @memoized
 def barbicanclient(request):
     project_id = request.user.project_id
-    if keystone.get_version() < 3:
-        auth = auth_v2.Token(settings.OPENSTACK_KEYSTONE_URL,
-                             request.user.token.id,
-                             tenant_id=project_id)
-    else:
-        domain_id = request.session.get('domain_context')
-        auth = auth_v3.Token(settings.OPENSTACK_KEYSTONE_URL,
-                             request.user.token.id,
-                             project_id=project_id,
-                             project_domain_id=domain_id)
+    # if keystone.get_version() < 3:
+    #     auth = auth_v2.Token(settings.OPENSTACK_KEYSTONE_URL,
+    #                          request.user.token.id,
+    #                          tenant_id=project_id)
+    # else:
+    #     domain_id = request.session.get('domain_context')
+    #     auth = auth_v3.Token(settings.OPENSTACK_KEYSTONE_URL,
+    #                          request.user.token.id,
+    #                          project_id=project_id,
+    #                          project_domain_id=domain_id)
+    auth = auth_v2.Token(settings.OPENSTACK_KEYSTONE_URL,
+    request.user.token.id,
+    tenant_id=project_id
+    )
     return barbican_client.Client(session=session.Session(auth=auth))
 
 
