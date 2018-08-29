@@ -270,6 +270,10 @@ def update_listener(request, **kwargs):
     if data['listener'].get('description'):
         listener_spec['description'] = data['listener']['description']
 
+    if data.get('certificates'):
+        listener_spec['default_tls_container_ref'] = data['certificates'][0]
+        listener_spec['sni_container_refs'] = data['certificates']
+
     listener = neutronclient(request).update_listener(
         listener_id, {'listener': listener_spec}).get('listener')
 
