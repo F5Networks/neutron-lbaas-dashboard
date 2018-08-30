@@ -1,0 +1,22 @@
+language: python
+
+python:
+    - "2.7"
+
+node_js: 4
+
+install:
+  - pip install tox
+
+jobs:
+  include:
+    - stage: openstack-tox-pep8
+      script: tox -e pep8 -vv
+    - stage: openstack-tox-py27
+      script: tox -e py27 -vv
+    - stage: build-openstack-sphinx-docs
+      script: tox -e docs -vv
+    - stage: nodejs-npm-run-lint
+      script: tox -e eslint -vv
+    - stage: nodejs-npm-run-test
+      script: tox -e karma -vv
