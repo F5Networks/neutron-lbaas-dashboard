@@ -99,6 +99,14 @@ edit-constraints "$localfile" -- "$CLIENT_NAME"
 
 install_cmd="pip install -c$localfile"
 
+# Ignore local constrain file, if a new constrain option is specified.
+# It is a workaround for "tox -e docs" problem. The pbr version in Ocata
+# upper-constrain.txt is too low. It can not suppress sphinx nonlocal image
+# warning.
+if [[ $1 = "-c"* ]] ; then
+    install_cmd="pip install"
+fi
+
 install_project horizon
 
 if [ -n "$*" ]; then
