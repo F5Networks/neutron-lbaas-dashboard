@@ -13,6 +13,8 @@ jobs:
     - stage: openstack-tox-pep8
       script: tox -e pep8 -vv
     - stage: openstack-tox-py27
+      sudo: required
+      before_script: sudo rm -f $(which xdpyinfo)
       script: tox -e py27 -vv
     - stage: build-openstack-sphinx-docs
       script: tox -e docs -vv
