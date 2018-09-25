@@ -16,7 +16,7 @@
 (function() {
   'use strict';
 
-  describe('Barbican API', function() {
+  describe('Barbican get API', function() {
     var testCall, service;
     var apiService = {};
     var toastService = {};
@@ -66,6 +66,74 @@
     it('supresses the error if instructed for getSecrets', function() {
       spyOn(apiService, 'get').and.returnValue("promise");
       expect(service.getSecrets(true)).toBe("promise");
+    });
+
+  });
+
+  describe('Barbican create API', function() {
+    var service, $q, scope, deferred;
+
+    var apiService = {post: angular.noop};
+    var toastService = {add: angular.noop};
+
+    beforeEach(module('horizon.app.core.openstack-service-api'));
+
+    beforeEach(module(function($provide) {
+      $provide.value('horizon.framework.widgets.toast.service', toastService);
+      $provide.value('horizon.framework.util.http.service', apiService);
+    }));
+
+    beforeEach(inject(function($injector) {
+      service = $injector.get('horizon.app.core.openstack-service-api.barbican');
+      scope = $injector.get('$rootScope').$new();
+
+      $q = $injector.get('$q');
+      deferred = $q.defer();
+    }));
+
+    beforeEach(function() {
+      spyOn(apiService, 'post').and.returnValue(deferred.promise);
+      spyOn(toastService, 'add').and.callThrough();
+    });
+
+    it('defines the service', function() {
+      expect(service).toBeDefined();
+    });
+
+    it("resolves apiService.post for createSecret", function() {
+      deferred.resolve("data");
+      service.createSecret({});
+      scope.$apply();
+
+      expect(toastService.add).not.toHaveBeenCalled();
+    });
+
+    it("rejects apiService.post for createSecret", function() {
+      deferred.reject("data");
+      service.createSecret({});
+      scope.$apply();
+
+      expect(toastService.add).toHaveBeenCalled();
+      expect(toastService.add)
+        .toHaveBeenCalledWith('error', "Unable to create secret.");
+    });
+
+    it("resolves apiService.post for createCertificate", function() {
+      deferred.resolve("data");
+      service.createCertificate({});
+      scope.$apply();
+
+      expect(toastService.add).not.toHaveBeenCalled();
+    });
+
+    it("rejects apiService.post for createCertificate", function() {
+      deferred.reject("data");
+      service.createCertificate({});
+      scope.$apply();
+
+      expect(toastService.add).toHaveBeenCalled();
+      expect(toastService.add)
+        .toHaveBeenCalledWith('error', "Unable to create certificate.");
     });
 
   });

@@ -62,6 +62,18 @@
         expect(ctrl.tableLimits.maxAllocation).toBe(-1);
       });
 
+      it('should be callable for $modal.open with parameters-reverse verifying', function() {
+        spyOn(modal, 'open');
+        expect(modal.open).not.toHaveBeenCalled();
+      });
+
+      it('should be callable for $modal.open with parameters', function() {
+        spyOn(modal, 'open').and.callFake(function(obj) {
+          return obj.resolve.certificateModel();
+        });
+        ctrl.createSSLCertificate();
+        expect(modal.open).toHaveBeenCalled();
+      });
     });
 
   });
