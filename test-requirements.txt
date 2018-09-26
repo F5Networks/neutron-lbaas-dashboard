@@ -23,3 +23,5 @@ xvfbwrapper>=0.1.3 #license: MIT
 # Angular bootstrap version must be lower than 0.14, due to modal renaming.
 # https://github.com/angular-ui/bootstrap/commit/8c7b9e4
 XStatic-Angular-Bootstrap<2.2.0 # MIT License
+# use XStatic-JQuery 1.10.2.1 for stable/mitaka instead of the default 3.3.1
+XStatic-JQuery<=1.10.2.1 # MIT License
