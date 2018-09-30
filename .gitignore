@@ -55,3 +55,6 @@ ChangeLog
 *~
 .*.swp
 .*sw?
+
+# F5 documentation
+docs/_build/
