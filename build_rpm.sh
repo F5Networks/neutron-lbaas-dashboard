@@ -12,7 +12,7 @@ python setup.py sdist --formats=gztar
 /bin/cp -f f5-setup.cfg setup.cfg
 
 python setup.py bdist_rpm --spec-only \
-  --release=1 \
+  --release=1.el7 \
   --provides=f5-neutron-lbaas-dashboard \
   --packager="Qin Zhao <q.zhao@f5.com>" \
   --post-install=rpm_post_install.sh
