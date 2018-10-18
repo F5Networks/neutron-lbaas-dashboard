@@ -19,12 +19,14 @@ python setup.py bdist_rpm --spec-only \
 
 # Repackage source tarball
 
-cd dist
+F5_VERSION=$(cat f5-version.txt)
 
+cd dist
 VERSION=$(rpmspec -q --qf "%{version}" f5-neutron-lbaas-dashboard.spec)
+sed -i "s/${VERSION}/${F5_VERSION}/g" f5-neutron-lbaas-dashboard.spec
 
 OLD=neutron-lbaas-dashboard-${VERSION}
-NEW=f5-neutron-lbaas-dashboard-${VERSION}
+NEW=f5-neutron-lbaas-dashboard-${F5_VERSION}
 
 tar -zxf ${OLD}.tar.gz
 
@@ -42,9 +44,11 @@ rm -rf neutron_lbaas_dashboard.egg-info
 
 cp -rp ../../f5_neutron_lbaas_dashboard.egg-info ./
 
+sed -i "s/^Version: ${VERSION}/Version: ${F5_VERSION}/" f5_neutron_lbaas_dashboard.egg-info/PKG-INFO
+
 sed -i "s/^neutron_lbaas_dashboard/f5_neutron_lbaas_dashboard/g" f5_neutron_lbaas_dashboard.egg-info/SOURCES.txt
 
-sed -i "s/_1481_project_ng_loadbalancersv2_panel.py/_1491_project_ng_loadbalancersv2_panel.py" f5_neutron_lbaas_dashboard.egg-info/SOURCES.txt
+sed -i "s/_1481_project_ng_loadbalancersv2_panel.py/_1491_project_ng_loadbalancersv2_panel.py/" f5_neutron_lbaas_dashboard.egg-info/SOURCES.txt
 
 /bin/cp -f f5_neutron_lbaas_dashboard.egg-info/PKG-INFO ./
 
