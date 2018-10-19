@@ -1,3 +1,6 @@
+env:
+  global:
+    - DASHBOARD_RPM="f5-neutron-lbaas-dashboard-$(cat f5-version.txt)-1.el7.noarch.rpm"
 language: python
 
 python:
@@ -20,3 +23,21 @@ jobs:
       script: tox -e eslint -vv
     - stage: nodejs-npm-run-test
       script: tox -e karma -vv
+    - stage: build-deploy-rpm
+      services: docker
+      script:
+        - CMD="yum install -y rpm-build rpmdevtools python-setuptools git ; rpmdev-setuptree ; cd /build ; ./build_rpm.sh"
+        - docker run --rm -v $(pwd):/build centos:7.5.1804 /bin/bash -c "${CMD}"
+        - cp dist/${DASHBOARD_RPM} ./
+        - md5sum ${DASHBOARD_RPM} | tee ${DASHBOARD_RPM}.md5
+      deploy:
+        provider: releases
+        api_key: ${GITHUB_TOKEN}
+        file:
+          - ${DASHBOARD_RPM}
+          - ${DASHBOARD_RPM}.md5
+        skip_cleanup: true
+        overwrite: true
+        on:
+          tags: true
+          condition: ${TRAVIS_TAG} = v*
