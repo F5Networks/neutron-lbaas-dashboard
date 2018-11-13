@@ -79,18 +79,15 @@ def update_esd(request, esd):
 
     l7policySpec = {}
 
-    if esd:
-        l7policySpec['id'] = esd['id']
+    if esd.get('description'):
+        l7policySpec['description'] = esd['description']
 
-        if esd.get('description'):
-            l7policySpec['description'] = esd['description']
-
-        if esd.get('position'):
-            l7policySpec['position'] = esd['position']
+    if esd.get('position'):
+        l7policySpec['position'] = esd['position']
 
     if l7policySpec.get('description') or l7policySpec.get('position'):
         neutronclient(request).update_lbaas_l7policy(
-            l7policySpec['id'], l7policySpec)
+            esd['id'], {'l7policy': l7policySpec})
 
     return
 
@@ -158,8 +155,8 @@ class ESD(generic.View):
         data = request.DATA
         spec = {
             'id': esd_id,
-            'description': data['description'],
-            'position': data['position']
+            'description': data.get('description'),
+            'position': data.get('position')
         }
         update_esd(request, {'esd', spec})
 
