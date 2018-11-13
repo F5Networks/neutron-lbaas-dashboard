@@ -38,10 +38,9 @@ def associate_esd(request, listener_id, esd):
         l7policySpec['description'] = esd['description']
     if esd.get('position'):
         l7policySpec['position'] = esd['position']
-    neutronclient(request).create_lbaas_l7policy(
-        {'l7policy': l7policySpec})
 
-    return
+    return neutronclient(request).create_lbaas_l7policy(
+        {'l7policy': l7policySpec}).get('l7policy')
 
 
 def list_esds(request, listener_id):
@@ -85,11 +84,8 @@ def update_esd(request, esd):
     if esd.get('position'):
         l7policySpec['position'] = esd['position']
 
-    if l7policySpec.get('description') or l7policySpec.get('position'):
-        neutronclient(request).update_lbaas_l7policy(
-            esd['id'], {'l7policy': l7policySpec})
-
-    return
+    return neutronclient(request).update_lbaas_l7policy(
+        esd['id'], {'l7policy': l7policySpec}).get('l7policy')
 
 
 def dissociate_esd(request, l7policy_id):
@@ -120,9 +116,7 @@ class ESDs(generic.View):
             'description': request.DATA.get('description'),
             'position': request.DATA.get('position')
         }
-        associate_esd(request, listener_id, spec)
-
-        return
+        return associate_esd(request, listener_id, spec)
 
     @rest_utils.ajax()
     def get(self, request, listener_id):
@@ -158,9 +152,7 @@ class ESD(generic.View):
             'description': data.get('description'),
             'position': data.get('position')
         }
-        update_esd(request, {'esd', spec})
-
-        return
+        return update_esd(request, spec)
 
     @rest_utils.ajax()
     def delete(self, request, esd_id, listener_id):
@@ -168,5 +160,4 @@ class ESD(generic.View):
 
         """
         dissociate_esd(request, esd_id)
-
         return
