@@ -23,7 +23,8 @@
   
       ESDController.$inject = [
       '$scope',
-      'horizon.framework.util.i18n.gettext'
+      'horizon.framework.util.i18n.gettext',
+      'horizon.app.core.esd'
     ];
   
     /**
@@ -37,7 +38,7 @@
      * @returns undefined
      */
   
-    function ESDController($scope, gettext) {
+    function ESDController($scope, gettext, esdAPI) {
   
       var ctrl = this;
   
@@ -57,36 +58,98 @@
         noneAllocText: gettext('Select ESD from the available ESDs below'),
         noneAvailText: gettext('No available ESDs')
       };
+      ctrl.lastlog = gettext("");
+      var working = false;
 
-      ctrl.deallocate = function(data) {
+      ctrl.allocate = allocate;
+      ctrl.deallocate = deallocate;
+      ctrl.update = update;
+
+      function allocate(data) {
+        if (working) {
+          ctrl.lastlog += " [Wait]";
+          return;
+        }
+        else {
+          working = true;
+        }
+
         var trCtrl = data[0];
-        var row = data[1]
+        var row = data[1];
         
-        // api call to apply new changes.
-        // here
-
-        trCtrl.deallocate(row);
+        if (row.status !== 'Normal') {
+          ctrl.lastlog = gettext("ESD status is '" + row.status + "', cannot be allocated, fix it first.");
+        }
+        else {
+          ctrl.lastlog = gettext("Allocating '" + row.name + "' to the listener ...");
+          esdAPI.addListenerESD($scope.model.context.id, row).then(
+            function(result) {
+              ctrl.lastlog = ctrl.lastlog + " [Done]";
+              row.id = result.data.id;
+              trCtrl.allocate(row);
+              working = false;
+            },
+            function(reason) {
+              console.log(reason);
+              ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
+              working = false;
+            }
+          );
+        }
       };
 
-      ctrl.allocate = function(data) {
+      function deallocate(data) {
+        if (working) {
+          ctrl.lastlog += " [Wait]";
+          return;
+        }
+        else {
+          working = true;
+        }
+
         var trCtrl = data[0];
-        var row = data[1]
+        var row = data[1];
         
-        // api call to apply new changes.
-        // here
-        
-        trCtrl.allocate(row);
+        ctrl.lastlog = gettext("Deallocating '" + row.name + "' from the listener ...");
+        esdAPI.deleteListenerESD($scope.model.context.id, row).then(
+          function(result) {
+            ctrl.lastlog = ctrl.lastlog + " [Done]";
+            trCtrl.deallocate(row);
+            working = false;
+          },
+          function(reason) {
+            console.log(reason);
+            ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
+            working = false;
+          }
+        );
       };
 
-      ctrl.updateAllocated = function(trCtrl, e, item, collection) {
-        console.log(item, collection);
 
-        // api call to apply new changes.
-        // here
-        
-        trCtrl.updateAllocated(e, item, collection);
+      function update(trCtrl, e, item, collection) {
+        if (working) {
+          ctrl.lastlog += " [Wait]";
+          return;
+        }
+        else {
+          working = true;
+        }
+
+        var position = collection.indexOf(item) + 1;
+
+        ctrl.lastlog = gettext("Reordering '" + item.name + "' for the listener to " + position + " ...");
+        esdAPI.updateListenerESD($scope.model.context.id, item, position).then(
+          function(result) {
+            ctrl.lastlog = ctrl.lastlog + " [Done]";
+            trCtrl.updateAllocated(e, item, collection);
+            working = false;
+          },
+          function(reason) {
+            console.log(reason);
+            ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
+            working = false;
+        });
       }
-
     }
   })();
   

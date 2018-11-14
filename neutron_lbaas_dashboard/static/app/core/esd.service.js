@@ -38,7 +38,10 @@
     function esdAPI(apiService, toastService) {
       var service = {
         getRepoESDs: getRepoESDs,
-        getListenerESDs: getListenerESDs
+        getListenerESDs: getListenerESDs,
+        updateListenerESD: updateListenerESD,
+        addListenerESD: addListenerESD,
+        deleteListenerESD: deleteListenerESD
       };
   
       return service;
@@ -61,7 +64,7 @@
         var promise = apiService.get('/api/esd/');
         return quiet ? promise : promise.error(function handleError(reason) {
           toastService.add('error',
-            gettext('Unable to retrieve ESDs: %s.', reason));
+            gettext('Unable to retrieve ESDs: ' + reason));
         });
       }
 
@@ -70,6 +73,35 @@
           function() {
             toastService.add('error', gettext("Unable to retrieve listener's ESDs."))
           });
+      }
+
+      function updateListenerESD(listenerId, esd, position) {
+        var esdId = esd.id;
+        var spec = {
+          id: esd.id,
+          description: esd.description,
+          position: position
+        }
+        return apiService.put('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
+      }
+
+      function addListenerESD(listenerId, esd) {
+        var spec = {
+          name: esd.name,
+          description: esd.description,
+          position: esd.position,
+        }
+        return apiService.post('api/lbaas/listeners/' + listenerId + '/esds/', spec);
+      }
+
+      function deleteListenerESD(listenerId, esd) {
+        var esdId = esd.id;
+        var spec = {
+          id: esd.id,
+          description: esd.description,
+          position: esd.position
+        }
+        return apiService.delete('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
       }
     }
   }());

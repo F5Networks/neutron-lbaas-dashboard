@@ -89,7 +89,7 @@
       return [{
         service: edit,
         template: {
-          text: gettext('Edit')
+          text: gettext('Edit Listener')
         }
       },{
         service: esd,

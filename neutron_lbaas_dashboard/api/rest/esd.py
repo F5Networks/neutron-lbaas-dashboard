@@ -48,11 +48,9 @@ def associate_esd(request, listener_id, esd):
         l7policySpec['description'] = esd['description']
     if esd.get('position'):
         l7policySpec['position'] = esd['position']
-    neutronclient(request).create_lbaas_l7policy(
-        {'l7policy': l7policySpec})
 
-    return
-
+    return neutronclient(request).create_lbaas_l7policy(
+        {'l7policy': l7policySpec}).get('l7policy')
 
 def list_esds(request, listener_id):
     """List all ESDs associated with a listener.
@@ -87,22 +85,17 @@ def update_esd(request, esd):
 
     """
 
+    LOG.debug("update_esd: %s" % esd)
     l7policySpec = {}
 
-    if esd:
-        l7policySpec['id'] = esd['id']
+    if esd.get('description'):
+        l7policySpec['description'] = esd['description']
 
-        if esd.get('description'):
-            l7policySpec['description'] = esd['description']
+    if esd.get('position'):
+        l7policySpec['position'] = esd['position']
 
-        if esd.get('position'):
-            l7policySpec['position'] = esd['position']
-
-    if l7policySpec.get('description') or l7policySpec.get('position'):
-        neutronclient(request).update_lbaas_l7policy(
-            l7policySpec['id'], l7policySpec)
-
-    return
+    return neutronclient(request).update_lbaas_l7policy(
+        esd['id'], {'l7policy': l7policySpec}).get('l7policy')
 
 
 def dissociate_esd(request, l7policy_id):
@@ -131,16 +124,18 @@ class RepoESDs(generic.View):
         """
 
         esds = {}
-        errmsgs = []
-
         esddir = '/etc/openstack-dashboard/esds'
         try:
             files = os.listdir(esddir)
         except Exception as e:
-            errmsg = "Error when list directory '%s': %s" % (esddir, e)
+            errmsg = "Failed to list directory '%s': %s" % (esddir, e)
             LOG.error(errmsg)
-            raise Exception(_(errmsg))
-        
+            esds['_FAULT_FOLDER'] = {
+                'status': 'Folder Error',
+                'description': errmsg
+            }
+            return {'items': esds}
+
         for file in files:
             path = os.path.join(esddir, file)
             try: 
@@ -150,17 +145,23 @@ class RepoESDs(generic.View):
                         if k in esds:
                             warnmsg = "Duplicate esd: %s, overriden." % k
                             LOG.warning(_(warnmsg))
-                            errmsgs.append('%s warning: %s' 
-                                % (str(datetime.datetime.now()), _(warnmsg)))
-                        esds[k] = v
+                            esds[k]['status'] = 'Duplicate Definition'
+                            desc = 'Definition 1: %s, Definition 2: %s' % (
+                                v, esds[k]['content'])
+                            esds[k]['description'] = desc
+                        else:
+                            esds[k] = {
+                                'status': "Normal",
+                                'description': '-',
+                                'content': v
+                            }
             except Exception as e:
                 errmsg = "Failed to load esd file '%s': %s." % (path, e)
                 LOG.error(errmsg)
-                errmsgs.append('%s error: %s' 
-                                % (str(datetime.datetime.now()), _(errmsg)))
-
-        for n in errmsgs:
-            esds[n] = {}
+                esds['_FAULT_FILE_%s' % file] = {
+                    'status': 'File Error',
+                    'description': errmsg
+                }
 
         return {'items': esds}
 
@@ -181,9 +182,7 @@ class ListenerESDs(generic.View):
             'description': request.DATA.get('description'),
             'position': request.DATA.get('position')
         }
-        associate_esd(request, listener_id, spec)
-
-        return
+        return associate_esd(request, listener_id, spec)
 
     @rest_utils.ajax()
     def get(self, request, listener_id):
@@ -218,12 +217,10 @@ class ListenerESD(generic.View):
         data = request.DATA
         spec = {
             'id': esd_id,
-            'description': data['description'],
-            'position': data['position']
+            'description': data.get('description'),
+            'position': data.get('position')
         }
-        update_esd(request, {'esd', spec})
-
-        return
+        return update_esd(request, spec)
 
     @rest_utils.ajax()
     def delete(self, request, esd_id, listener_id):

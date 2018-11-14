@@ -1,5 +1,6 @@
 <div ng-controller="ESDController as ctrl">
-  <p translate>Select one or more ESDs for the listener.</p>
+  <p translate>Allocate, deallocate or reorder ESDs for the listener.</p>
+  <p><strong>Last Operation: </strong><i ng-model="ctrl.lastlog"> {$ ctrl.lastlog $} </i></p>
 
   <transfer-table tr-model="ctrl.tableData"
                   limits="::ctrl.tableLimits"
@@ -29,7 +30,7 @@
           </tr>
           <tr ng-repeat-start="row in ctrl.tableData.displayedAllocated track by row.id"
               lr-drag-data="ctrl.tableData.displayedAllocated" lr-drag-src="reorder"
-              lr-drop-target="reorder" lr-drop-success="ctrl.updateAllocated(trCtrl, e, item, collection)">
+              lr-drop-target="reorder" lr-drop-success="ctrl.update(trCtrl, e, item, collection)">
               <!--lr-drop-target="reorder" lr-drop-success="trCtrl.updateAllocated(e, item, collection)">-->
             <td class="reorder">
               <span class="fa fa-sort" title="{$ 'Re-order items using drag and drop'|translate $}"></span>
@@ -55,8 +56,7 @@
             </td>
           </tr>
           <tr ng-repeat-end class="detail-row">
-            <td colspan="2"></td>
-            <td colspan="7" class="detail">
+            <td colspan="7" class="detail" ng-if="row.status === 'Normal'">
               <dl class="dl-horizontal">
                 <dt translate>Name</dt>
                 <dd>{$ row.name $}</dd>
@@ -71,6 +71,12 @@
                   </dl>
                 </dd>
               </dl>
+            </td>
+            <td colspan="7" class="detail" ng-if="row.status !== 'Normal'">
+                <dl class="dl-horizontal">
+                   <dt translate>Description</dt>
+                   <dd>{$ row.description $}</dd>
+                </dl>
             </td>
           </tr>
         </tbody>
@@ -91,7 +97,7 @@
           <tr>
             <th class="expander"></th>
             <th st-sort="name" st-sort-default class="rsp-p1" translate>ESD Name</th>
-            <th st-sort="name" st-sort-default class="rsp-p1" translate>Status</th>
+            <th st-sort="status" st-sort-default class="rsp-p1" translate>Status</th>
             <th class="actions_column"></th>
           </tr>
         </thead>
@@ -123,21 +129,27 @@
           </tr>
           <tr ng-repeat-end class="detail-row" ng-if="!trCtrl.allocatedIds[row.id]">
             <td></td>
-            <td colspan="7" class="detail">
-                <dl class="dl-horizontal">
-                  <dt translate>Name</dt>
-                  <dd>{$ row.name $}</dd>
-                  <dt translate>Definition</dt>
-                  <dd>
-                    <dl class="dl-horizontal">
-                      <dt></dt><dd></dd>
-                      <div ng-repeat="dk in ['lbaas_cssl_profile', 'lbaas_sssl_profile', 'lbaas_ctcp', 'lbaas_stcp', 'lbaas_fallback_persist', 'lbaas_persist', 'lbaas_irule', 'lbaas_policy']">
-                        <dt translate>{$ dk $} : </dt>
-                        <dd>{$ row.content[dk] $}</dd>
-                      </div>
-                    </dl>
-                  </dd>
-                </dl>
+            <td colspan="7" class="detail" ng-if="row.status === 'Normal'">
+              <dl class="dl-horizontal">
+                <dt translate>Name</dt>
+                <dd>{$ row.name $}</dd>
+                <dt translate>Definition</dt>
+                <dd>
+                  <dl class="dl-horizontal">
+                    <dt></dt><dd></dd>
+                    <div ng-repeat="dk in ['lbaas_cssl_profile', 'lbaas_sssl_profile', 'lbaas_ctcp', 'lbaas_stcp', 'lbaas_fallback_persist', 'lbaas_persist', 'lbaas_irule', 'lbaas_policy']">
+                      <dt translate>{$ dk $} : </dt>
+                      <dd>{$ row.content[dk] $}</dd>
+                    </div>
+                  </dl>
+                </dd>
+              </dl>
+            </td>
+            <td colspan="7" class="detail" ng-if="row.status !== 'Normal'">
+              <dl class="dl-horizontal">
+                  <dt translate>Description</dt>
+                  <dd>{$ row.description $}</dd>
+              </dl>
             </td>
           </tr>
         </tbody>
