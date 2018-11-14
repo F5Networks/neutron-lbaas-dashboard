@@ -79,6 +79,7 @@
         
         if (row.status !== 'Normal') {
           ctrl.lastlog = gettext("ESD status is '" + row.status + "', cannot be allocated, fix it first.");
+          working = false;
         }
         else {
           ctrl.lastlog = gettext("Allocating '" + row.name + "' to the listener ...");
