@@ -24,3 +24,4 @@ in https://wiki.openstack.org/wiki/APIChangeGuidelines.
 # import REST API modules here
 from neutron_lbaas_dashboard.api.rest import barbican  # noqa
 from neutron_lbaas_dashboard.api.rest import lbaasv2  # noqa
+from neutron_lbaas_dashboard.api.rest import esd  # noqa
