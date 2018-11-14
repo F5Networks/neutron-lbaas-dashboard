@@ -27,6 +27,14 @@
   ];
 
   function lbaasWorkflow(basePath, dashboardWorkflow, gettext) {
+    var esdStep = {
+      id: 'esd',
+      title: gettext('Enhanced Service Definitions'),
+      templateUrl: basePath + 'workflow/esd/esd.html',
+      helpUrl: basePath + 'workflow/esd/esd.help.html',
+      formName: 'ESDDetailsForm'
+    };
+
     var workflowSteps = [
       {
         id: 'loadbalancer',
@@ -62,7 +70,8 @@
         templateUrl: basePath + 'workflow/monitor/monitor.html',
         helpUrl: basePath + 'workflow/monitor/monitor.help.html',
         formName: 'monitorDetailsForm'
-      }
+      },
+      esdStep
     ];
 
     // This step is kept separate from the rest because it is only added to the workflow by
@@ -103,7 +112,8 @@
         },
         steps: filteredSteps,
         allSteps: workflowSteps,
-        certificatesStep: certificatesStep
+        certificatesStep: certificatesStep,
+        esdStep: esdStep
       });
     }
   }

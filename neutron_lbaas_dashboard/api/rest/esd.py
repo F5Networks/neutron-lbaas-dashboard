@@ -1,4 +1,4 @@
-# Copyright 2018 F5 Networks, Inc.
+# Copyright 2018, F5 Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """ESD API over the neutron LBaaS v2 service.
 """
 
+import datetime
+
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 from django.views import generic
+
+import json
+import logging
 
 from openstack_dashboard.api import neutron
 from openstack_dashboard.api.rest import urls
 from openstack_dashboard.api.rest import utils as rest_utils
 
-neutronclient = neutron.neutronclient
+import os
 
+neutronclient = neutron.neutronclient
+LOG = logging.getLogger(__name__)
 
 def associate_esd(request, listener_id, esd):
     """Associate an ESD with a listener.
@@ -38,11 +48,9 @@ def associate_esd(request, listener_id, esd):
         l7policySpec['description'] = esd['description']
     if esd.get('position'):
         l7policySpec['position'] = esd['position']
-    neutronclient(request).create_lbaas_l7policy(
-        {'l7policy': l7policySpec})
 
-    return
-
+    return neutronclient(request).create_lbaas_l7policy(
+        {'l7policy': l7policySpec}).get('l7policy')
 
 def list_esds(request, listener_id):
     """List all ESDs associated with a listener.
@@ -77,22 +85,17 @@ def update_esd(request, esd):
 
     """
 
+    LOG.debug("update_esd: %s" % esd)
     l7policySpec = {}
 
-    if esd:
-        l7policySpec['id'] = esd['id']
+    if esd.get('description'):
+        l7policySpec['description'] = esd['description']
 
-        if esd.get('description'):
-            l7policySpec['description'] = esd['description']
+    if esd.get('position'):
+        l7policySpec['position'] = esd['position']
 
-        if esd.get('position'):
-            l7policySpec['position'] = esd['position']
-
-    if l7policySpec.get('description') or l7policySpec.get('position'):
-        neutronclient(request).update_lbaas_l7policy(
-            l7policySpec['id'], l7policySpec)
-
-    return
+    return neutronclient(request).update_lbaas_l7policy(
+        esd['id'], {'l7policy': l7policySpec}).get('l7policy')
 
 
 def dissociate_esd(request, l7policy_id):
@@ -107,10 +110,66 @@ def dissociate_esd(request, l7policy_id):
 
 
 @urls.register
-class ESDs(generic.View):
-    """API for associating, retrieving ESD associated with a listener.
+class RepoESDs(generic.View):
+    """API for working with SSL certificate containers.
 
     """
+    url_regex = r'esd/$'
+
+    @rest_utils.ajax()
+    def get(self, request):
+        """List esd containers.
+
+        The listing result is an object with property "items".
+        """
+
+        esds = {}
+        esddir = '/etc/openstack-dashboard/esds'
+        try:
+            files = os.listdir(esddir)
+        except Exception as e:
+            errmsg = "Failed to list directory '%s': %s" % (esddir, e)
+            LOG.error(errmsg)
+            esds['_FAULT_FOLDER'] = {
+                'status': 'Folder Error',
+                'description': errmsg
+            }
+            return {'items': esds}
+
+        for file in files:
+            path = os.path.join(esddir, file)
+            try: 
+                with open(path) as fr:
+                    esdjson = json.load(fr)
+                    for k, v in esdjson.items():
+                        if k in esds:
+                            warnmsg = "Duplicate esd: %s, overriden." % k
+                            LOG.warning(_(warnmsg))
+                            esds[k]['status'] = 'Duplicate Definition'
+                            desc = 'Definition 1: %s, Definition 2: %s' % (
+                                v, esds[k]['content'])
+                            esds[k]['description'] = desc
+                        else:
+                            esds[k] = {
+                                'status': "Normal",
+                                'description': '-',
+                                'content': v
+                            }
+            except Exception as e:
+                errmsg = "Failed to load esd file '%s': %s." % (path, e)
+                LOG.error(errmsg)
+                esds['_FAULT_FILE_%s' % file] = {
+                    'status': 'File Error',
+                    'description': errmsg
+                }
+
+        return {'items': esds}
+
+@urls.register
+class ListenerESDs(generic.View):
+    '''
+    '''
+
     url_regex = r'lbaas/listeners/(?P<listener_id>[^/]+)/esds/$'
 
     @rest_utils.ajax()
@@ -123,20 +182,20 @@ class ESDs(generic.View):
             'description': request.DATA.get('description'),
             'position': request.DATA.get('position')
         }
-        associate_esd(request, listener_id, spec)
-
-        return
+        return associate_esd(request, listener_id, spec)
 
     @rest_utils.ajax()
     def get(self, request, listener_id):
         """Get all ESDs associated with a listener
 
         """
+
+        LOG.info("Getting listener id: %s's esd list." % listener_id)
         return list_esds(request, listener_id)
 
 
 @urls.register
-class ESD(generic.View):
+class ListenerESD(generic.View):
     """API for retrieving, updating, and dessociating a single ESD with a listener.
 
     """
@@ -158,12 +217,10 @@ class ESD(generic.View):
         data = request.DATA
         spec = {
             'id': esd_id,
-            'description': data['description'],
-            'position': data['position']
+            'description': data.get('description'),
+            'position': data.get('position')
         }
-        update_esd(request, {'esd', spec})
-
-        return
+        return update_esd(request, spec)
 
     @rest_utils.ajax()
     def delete(self, request, esd_id, listener_id):

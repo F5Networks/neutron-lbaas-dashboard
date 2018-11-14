@@ -28,6 +28,7 @@
     'horizon.app.core.openstack-service-api.nova',
     'horizon.app.core.openstack-service-api.lbaasv2',
     'horizon.app.core.openstack-service-api.barbican',
+    'horizon.app.core.esd',
     'horizon.app.core.openstack-service-api.serviceCatalog',
     'horizon.framework.util.i18n.gettext'
   ];
@@ -57,6 +58,7 @@
     novaAPI,
     lbaasv2API,
     barbicanAPI,
+    esdAPI,
     serviceCatalog,
     gettext
   ) {
@@ -90,6 +92,7 @@
       monitorTypes: ['HTTP', 'PING', 'TCP'],
       monitorMethods: ['GET', 'HEAD'],
       certificates: [],
+      esds: [],
       listenerPorts: [],
 
       /**
@@ -166,7 +169,8 @@
           path: '/'
         },
         members: [],
-        certificates: []
+        certificates: [],
+        esds: []
       };
 
       if (!model.initializing) {
@@ -193,7 +197,8 @@
         editloadbalancer: initEditLoadBalancer,
         editlistener: initEditListener,
         editpool: initEditPool,
-        editmonitor: initEditMonitor
+        editmonitor: initEditMonitor,
+        editesd: initEditESD
       }[type](keymanagerPromise);
 
       return promise.then(onInitSuccess, onInitFail);
@@ -216,7 +221,7 @@
         neutronAPI.getSubnets().then(onGetSubnets),
         neutronAPI.getPorts().then(onGetPorts),
         novaAPI.getServers().then(onGetServers),
-        keymanagerPromise.then(prepareCertificates, angular.noop)
+        keymanagerPromise.then(prepareCertificates, angular.noop)        
       ]).then(initMemberAddresses);
     }
 
@@ -289,6 +294,14 @@
       return lbaasv2API.getHealthMonitor(model.context.id).then(onGetHealthMonitor);
     }
 
+    function initEditESD() {
+      model.context.submit = editESD;
+      return $q.all([
+        esdAPI.getRepoESDs(),
+        esdAPI.getListenerESDs(model.context.id)
+      ]).then(onGetESDs, angular.noop);
+    }
+
     /**
      * @ngdoc method
      * @name workflowModel.submit
@@ -341,6 +354,14 @@
 
     function editHealthMonitor(spec) {
       return lbaasv2API.editHealthMonitor(model.context.id, spec);
+    }
+
+    function editESD(spec) {
+      // do nothing because the edit action are carried out immediately after user's operation.
+      // do do a check.
+      console.log("editESD");
+      console.log(spec);
+      return spec;
     }
 
     function updatePoolMemberList(spec) {
@@ -739,6 +760,90 @@
       // want to make the user aware of the error.
       model.certificatesError = true;
     }
-  }
 
+    // response[0].data.items: repo esds:      dict
+    // example:
+    /*
+      {
+        "esd_demo-1": {
+          "status": "Normal",
+          "description": "-",
+          "content": {
+            "lbaas_cssl_profile": "clientssl-secure",
+            "lbaas_ctcp": "tcp-mobile-optimized",
+            "lbaas_fallback_persist": "source_addr",
+            "lbaas_irule": [
+                "_sys_https_redirect"
+            ],
+            "lbaas_persist": "hash",
+            "lbaas_policy": [],
+            "lbaas_sssl_profile": "serverssl",
+            "lbaas_stcp": "tcp-lan-optimized",
+            "META": "Normal" or "Duplicate"
+          }
+        },
+        ...
+      }
+     */
+
+    // response[1].data: listener esds:  list of object
+    // example:
+    /*
+      {
+        "action":"REJECT",
+        "admin_state_up":true,
+        "description":"",
+        "id":"9066c5e1-6542-4b3c-aeb2-bd56b3496603",
+        "name":"esd_demo_8",
+        "position":1,
+        "redirect_pool_id":null,
+        "redirect_url":null,
+        "rules":[],
+        "tenant_id":"fde45211da0a44ecbf38cb0b644ab30d"
+      }
+     */
+    function onGetESDs(response) {
+      model.esds.length = 0;
+      model.spec.esds.length = 0;
+
+      var names0 = Object.keys(response[0].data.items);
+      var names1ids = {};
+      response[1].data.forEach(function(item) {
+        names1ids[item.name] = item.id;
+      });
+      var names1 = Object.keys(names1ids);
+
+      // add to model.spec.esds
+      response[1].data.forEach(function addESD(item) {
+        var obj = response[0].data.items[item.name];
+        var status = (obj && obj.content && Object.keys(obj.content).length > 0)
+            ? obj.status : "Missing Definition";
+        var esd = {
+          id: item.id,
+          name: item.name,
+          content: obj ? obj.content : {},
+          status: status,
+          description: obj ? obj.description : '-'
+        };
+
+        model.spec.esds.push(esd);
+
+        // add to model.esds
+        model.esds.push(esd);
+      });
+
+      // add to model.esds
+      names0.forEach(function addESD(item){
+        if (names1.indexOf(item) <= -1) {
+          model.esds.push({
+            id: names1ids[item] ? names1ids[item] : item,
+            name: item,
+            content: response[0].data.items[item].content,
+            status: response[0].data.items[item].status,
+            description: response[0].data.items[item].description
+          });
+        }
+      });
+    }
+  }
 })();
