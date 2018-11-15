@@ -14,95 +14,91 @@
  * limitations under the License.
  */
 (function () {
-    'use strict';
-  
-    angular
-      .module('horizon.app.core.openstack-service-api')
-      .factory('horizon.app.core.esd', esdAPI);
-  
-      esdAPI.$inject = [
-      'horizon.framework.util.http.service',
-      'horizon.framework.widgets.toast.service'
-    ];
+  'use strict';
 
-    // zongzw TODO: replace all *barbican* in comment, function definition..
+  angular
+    .module('horizon.app.core.openstack-service-api')
+    .factory('horizon.app.core.esd', esdAPI);
+
+  esdAPI.$inject = [
+    'horizon.framework.util.http.service',
+    'horizon.framework.widgets.toast.service'
+  ];
+
+  /**
+   * @ngdoc service
+   * @name horizon.app.core.esd
+   * @description Provides esd service: post/put/get/update.
+   * @param apiService The horizon core API service.
+   * @param toastService The horizon toast service.
+   * @returns The esd service API.
+   */
+
+  function esdAPI(apiService, toastService) {
+    var service = {
+      getRepoESDs: getRepoESDs,
+      getListenerESDs: getListenerESDs,
+      updateListenerESD: updateListenerESD,
+      addListenerESD: addListenerESD,
+      deleteListenerESD: deleteListenerESD
+    };
+
+    return service;
+
+    ///////////////
+
     /**
-     * @ngdoc service
-     * @name horizon.app.core.openstack-service-api.barbican
-     * @description Provides direct pass through to barbican with NO abstraction.
-     * @param apiService The horizon core API service.
-     * @param toastService The horizon toast service.
-     * @returns The barbican service API.
+     * @name horizon.app.core.esd.getRepoESDs
+     * @description
+     * Get a list of ESDs from repository, the repository can be directory.
+     *
+     * @param {boolean} quiet
+     * The listing result is an object with property "items". Each item is a
+     * ESD: {'id': id, 'status': status, 'content': {}}
      */
-  
-    function esdAPI(apiService, toastService) {
-      var service = {
-        getRepoESDs: getRepoESDs,
-        getListenerESDs: getListenerESDs,
-        updateListenerESD: updateListenerESD,
-        addListenerESD: addListenerESD,
-        deleteListenerESD: deleteListenerESD
-      };
-  
-      return service;
-  
-      ///////////////
-  
-      // SSL Certificate Containers
-  
-      /**
-       * @name horizon.app.core.openstack-service-api.barbican.getCertificates
-       * @description
-       * Get a list of SSL certificate containers.
-       *
-       * @param {boolean} quiet
-       * The listing result is an object with property "items". Each item is
-       * a certificate container.
-       */
-  
-      function getRepoESDs(quiet) {
-        var promise = apiService.get('/api/esd/');
-        return quiet ? promise : promise.error(function handleError(reason) {
-          toastService.add('error',
-            gettext('Unable to retrieve ESDs: ' + reason));
-        });
-      }
 
-      function getListenerESDs(listenerId) {
-        return apiService.get('/api/lbaas/listeners/' + listenerId + '/esds/').error(
-          function() {
-            toastService.add('error', gettext("Unable to retrieve listener's ESDs."))
-          });
-      }
-
-      function updateListenerESD(listenerId, esd, position) {
-        var esdId = esd.id;
-        var spec = {
-          id: esd.id,
-          description: esd.description,
-          position: position
-        }
-        return apiService.put('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
-      }
-
-      function addListenerESD(listenerId, esd) {
-        var spec = {
-          name: esd.name,
-          description: esd.description,
-          position: esd.position,
-        }
-        return apiService.post('api/lbaas/listeners/' + listenerId + '/esds/', spec);
-      }
-
-      function deleteListenerESD(listenerId, esd) {
-        var esdId = esd.id;
-        var spec = {
-          id: esd.id,
-          description: esd.description,
-          position: esd.position
-        }
-        return apiService.delete('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
-      }
+    function getRepoESDs(quiet) {
+      var promise = apiService.get('/api/esd/');
+      return quiet ? promise : promise.error(function handleError(reason) {
+        toastService.add('error',
+          gettext('Unable to retrieve ESDs: ' + reason));
+      });
     }
-  }());
 
+    function getListenerESDs(listenerId) {
+      return apiService.get('/api/lbaas/listeners/' + listenerId + '/esds/').error(
+        function() {
+          toastService.add('error', gettext("Unable to retrieve listener's ESDs."));
+        });
+    }
+
+    function updateListenerESD(listenerId, esd, position) {
+      var esdId = esd.id;
+      var spec = {
+        id: esd.id,
+        description: esd.description,
+        position: position
+      };
+      return apiService.put('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
+    }
+
+    function addListenerESD(listenerId, esd) {
+      var spec = {
+        name: esd.name,
+        description: esd.description,
+        position: esd.position
+      };
+      return apiService.post('api/lbaas/listeners/' + listenerId + '/esds/', spec);
+    }
+
+    function deleteListenerESD(listenerId, esd) {
+      var esdId = esd.id;
+      var spec = {
+        id: esd.id,
+        description: esd.description,
+        position: esd.position
+      };
+      return apiService.delete('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
+    }
+  }
+}());

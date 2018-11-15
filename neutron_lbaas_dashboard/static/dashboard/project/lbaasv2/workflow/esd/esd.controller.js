@@ -15,142 +15,137 @@
  */
 
 (function () {
-    'use strict';
-  
-    angular
-      .module('horizon.dashboard.project.lbaasv2')
-      .controller('ESDController', ESDController);
-  
-      ESDController.$inject = [
-      '$scope',
-      'horizon.framework.util.i18n.gettext',
-      'horizon.app.core.esd'
-    ];
-  
-    /**
-     * @ngdoc controller
-     * @name ESDController
-     * @description
-     * The `ESDController` controller provides functions for adding ESDs to a
-     * listener.
-     * @param $scope The angular scope object.
-     * @param gettext The horizon gettext function for translation.
-     * @returns undefined
-     */
-  
-    function ESDController($scope, gettext, esdAPI) {
-  
-      var ctrl = this;
-  
-      ctrl.tableData = {
-        available: $scope.model.esds,
-        allocated: $scope.model.spec.esds,
-        displayedAvailable: [],
-        displayedAllocated: []
-      };
-  
-      ctrl.tableLimits = {
-        maxAllocation: -1
-      };
-  
-      ctrl.tableHelp = {
-        availHelpText: '',
-        noneAllocText: gettext('Select ESD from the available ESDs below'),
-        noneAvailText: gettext('No available ESDs')
-      };
-      ctrl.lastlog = gettext("");
-      var working = false;
+  'use strict';
 
-      ctrl.allocate = allocate;
-      ctrl.deallocate = deallocate;
-      ctrl.update = update;
+  angular
+    .module('horizon.dashboard.project.lbaasv2')
+    .controller('ESDController', ESDController);
 
-      function allocate(data) {
-        if (working) {
-          ctrl.lastlog += " [Wait]";
-          return;
-        }
-        else {
-          working = true;
-        }
+  ESDController.$inject = [
+    '$scope',
+    'horizon.framework.util.i18n.gettext',
+    'horizon.app.core.esd'
+  ];
 
-        var trCtrl = data[0];
-        var row = data[1];
-        
-        if (row.status !== 'Normal') {
-          ctrl.lastlog = gettext("ESD status is '" + row.status + "', cannot be allocated, fix it first.");
-          working = false;
-        }
-        else {
-          ctrl.lastlog = gettext("Allocating '" + row.name + "' to the listener ...");
-          esdAPI.addListenerESD($scope.model.context.id, row).then(
-            function(result) {
-              ctrl.lastlog = ctrl.lastlog + " [Done]";
-              row.id = result.data.id;
-              trCtrl.allocate(row);
-              working = false;
-            },
-            function(reason) {
-              console.log(reason);
-              ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
-              working = false;
-            }
-          );
-        }
-      };
+  /**
+   * @ngdoc controller
+   * @name ESDController
+   * @description
+   * The `ESDController` controller provides functions for adding ESDs to a
+   * listener.
+   * @param $scope The angular scope object.
+   * @param gettext The horizon gettext function for translation.
+   * @returns undefined
+   */
 
-      function deallocate(data) {
-        if (working) {
-          ctrl.lastlog += " [Wait]";
-          return;
-        }
-        else {
-          working = true;
-        }
+  function ESDController($scope, gettext, esdAPI) {
 
-        var trCtrl = data[0];
-        var row = data[1];
-        
-        ctrl.lastlog = gettext("Deallocating '" + row.name + "' from the listener ...");
-        esdAPI.deleteListenerESD($scope.model.context.id, row).then(
+    var ctrl = this;
+
+    ctrl.tableData = {
+      available: $scope.model.esds,
+      allocated: $scope.model.spec.esds,
+      displayedAvailable: [],
+      displayedAllocated: []
+    };
+
+    ctrl.tableLimits = {
+      maxAllocation: -1
+    };
+
+    ctrl.tableHelp = {
+      availHelpText: '',
+      noneAllocText: gettext('Select ESD from the available ESDs below'),
+      noneAvailText: gettext('No available ESDs')
+    };
+    ctrl.lastlog = gettext("");
+    var working = false;
+
+    ctrl.allocate = allocate;
+    ctrl.deallocate = deallocate;
+    ctrl.update = update;
+
+    function allocate(data) {
+      if (working) {
+        ctrl.lastlog += " [Wait]";
+        return;
+      } else {
+        working = true;
+      }
+
+      var trCtrl = data[0];
+      var row = data[1];
+
+      if (row.status !== 'Normal') {
+        ctrl.lastlog = gettext("ESD status is '" +
+                       row.status + "', cannot be allocated, fix it first.");
+        working = false;
+      } else {
+        ctrl.lastlog = gettext("Allocating '" + row.name + "' to the listener ...");
+        esdAPI.addListenerESD($scope.model.context.id, row).then(
           function(result) {
             ctrl.lastlog = ctrl.lastlog + " [Done]";
-            trCtrl.deallocate(row);
+            row.id = result.data.id;
+            trCtrl.allocate(row);
             working = false;
           },
           function(reason) {
-            console.log(reason);
             ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
             working = false;
           }
         );
-      };
-
-
-      function update(trCtrl, e, item, collection) {
-        if (working) {
-          ctrl.lastlog += " [Wait]";
-          return;
-        }
-        else {
-          working = true;
-        }
-
-        var position = collection.indexOf(item) + 1;
-
-        ctrl.lastlog = gettext("Reordering '" + item.name + "' for the listener to " + position + " ...");
-        esdAPI.updateListenerESD($scope.model.context.id, item, position).then(
-          function(result) {
-            ctrl.lastlog = ctrl.lastlog + " [Done]";
-            trCtrl.updateAllocated(e, item, collection);
-            working = false;
-          },
-          function(reason) {
-            console.log(reason);
-            ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
-            working = false;
-        });
       }
     }
-  })();
+
+    function deallocate(data) {
+      if (working) {
+        ctrl.lastlog += " [Wait]";
+        return;
+      } else {
+        working = true;
+      }
+
+      var trCtrl = data[0];
+      var row = data[1];
+
+      ctrl.lastlog = gettext("Deallocating '" + row.name + "' from the listener ...");
+      esdAPI.deleteListenerESD($scope.model.context.id, row).then(
+        function() {
+          ctrl.lastlog = ctrl.lastlog + " [Done]";
+          trCtrl.deallocate(row);
+          working = false;
+        },
+        function(reason) {
+          ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
+          working = false;
+        }
+      );
+    }
+
+    function update(trCtrl, e, item, collection) {
+      if (working) {
+        ctrl.lastlog += " [Wait]";
+        return;
+      } else {
+        working = true;
+      }
+
+      var position = collection.indexOf(item) + 1;
+
+      ctrl.lastlog = gettext("Reordering '" + item.name +
+                     "' for the listener to " + position + " ...");
+      esdAPI.updateListenerESD($scope.model.context.id, item, position).then(
+        function() {
+          ctrl.lastlog = ctrl.lastlog + " [Done]";
+          trCtrl.updateAllocated(e, item, collection);
+          working = false;
+        },
+        function(reason) {
+          ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
+          working = false;
+        }
+      );
+    }
+  }
+})();
 

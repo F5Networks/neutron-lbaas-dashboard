@@ -358,9 +358,6 @@
 
     function editESD(spec) {
       // do nothing because the edit action are carried out immediately after user's operation.
-      // do do a check.
-      console.log("editESD");
-      console.log(spec);
       return spec;
     }
 
@@ -816,7 +813,7 @@
       // add to model.spec.esds
       response[1].data.forEach(function addESD(item) {
         var obj = response[0].data.items[item.name];
-        var status = (obj && obj.content && Object.keys(obj.content).length > 0)
+        var status = obj && obj.content && Object.keys(obj.content).length > 0
             ? obj.status : "Missing Definition";
         var esd = {
           id: item.id,
@@ -833,7 +830,7 @@
       });
 
       // add to model.esds
-      names0.forEach(function addESD(item){
+      names0.forEach(function addESD(item) {
         if (names1.indexOf(item) <= -1) {
           model.esds.push({
             id: names1ids[item] ? names1ids[item] : item,

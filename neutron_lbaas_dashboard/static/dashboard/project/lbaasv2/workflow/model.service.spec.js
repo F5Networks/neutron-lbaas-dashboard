@@ -244,6 +244,68 @@
         }
       });
 
+      $provide.value('horizon.app.core.esd', {
+        getRepoESDs: function() {
+          return {
+            items: {
+              esd_demo_1: {
+                id: 'esd_demo_1',
+                status: 'Normal',
+                content: {
+                  lbaas_cssl_profile: "clientssl",
+                  lbaas_ctcp: "tcp-mobile-optimized",
+                  lbaas_fallback_persist: "source_addr",
+                  lbaas_irule: [
+                    "_sys_https_redirect"
+                  ],
+                  lbaas_persist: "hash",
+                  lbaas_policy: [],
+                  lbaas_sssl_profile: "serverssl",
+                  lbaas_stcp: "tcp-lan-optimized"
+                }
+              },
+              esd_demo_3: {
+                id: 'esd_demo_3',
+                status: 'Duplicate Definition',
+                content: {
+                  lbaas_cssl_profile: "clientssl",
+                  lbaas_ctcp: "tcp-mobile-optimized",
+                  lbaas_sssl_profile: "serverssl"
+                }
+              }
+            }
+          };
+        },
+        getListenerESDs: function() {
+          return [
+            {
+              action: "REJECT",
+              admin_state_up: true,
+              description: "",
+              id: "9066c5e1-6542-4b3c-aeb2-bd56b3496603",
+              name: "esd_demo_8",
+              position: 3,
+              redirect_pool_id: null,
+              redirect_url: null,
+              rules: [],
+              tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
+            },
+            {
+              action: "REJECT",
+              admin_state_up: true,
+              description: "",
+              id: "d5d77d87-0a07-4124-8b16-6b47a6d72cd6",
+              name: "esd_not_exists",
+              position: 1,
+              redirect_pool_id: null,
+              redirect_url: null,
+              rules: [],
+              tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
+            }
+          ];
+        }
+      });
+
       $provide.value('horizon.app.core.openstack-service-api.neutron', {
         getSubnets: function() {
           var subnets = [ { id: 'subnet-1', name: 'subnet-1' },
@@ -921,7 +983,7 @@
       // This is here to ensure that as people add/change spec properties, they don't forget
       // to implement tests for them.
       it('has the right number of properties', function() {
-        expect(Object.keys(model.spec).length).toBe(8);
+        expect(Object.keys(model.spec).length).toBe(9);
         expect(Object.keys(model.spec.loadbalancer).length).toBe(4);
         expect(Object.keys(model.spec.listener).length).toBe(5);
         expect(Object.keys(model.spec.pool).length).toBe(5);

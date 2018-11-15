@@ -15,9 +15,6 @@
 """ESD API over the neutron LBaaS v2 service.
 """
 
-import datetime
-
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.views import generic
 
@@ -32,6 +29,7 @@ import os
 
 neutronclient = neutron.neutronclient
 LOG = logging.getLogger(__name__)
+
 
 def associate_esd(request, listener_id, esd):
     """Associate an ESD with a listener.
@@ -51,6 +49,7 @@ def associate_esd(request, listener_id, esd):
 
     return neutronclient(request).create_lbaas_l7policy(
         {'l7policy': l7policySpec}).get('l7policy')
+
 
 def list_esds(request, listener_id):
     """List all ESDs associated with a listener.
@@ -127,7 +126,8 @@ class RepoESDs(generic.View):
         try:
             files = os.listdir(esddir)
         except Exception as e:
-            errmsg = "Failed to list directory '%s': %s" % (esddir, e)
+            errmsg = _("Failed to list directory '%(esddir)s': %(err)s")\
+                % {'esddir': esddir, 'err': e}
             LOG.error(errmsg)
             esds['_FAULT_FOLDER'] = {
                 'status': 'Folder Error',
@@ -137,13 +137,13 @@ class RepoESDs(generic.View):
 
         for file in files:
             path = os.path.join(esddir, file)
-            try: 
+            try:
                 with open(path) as fr:
                     esdjson = json.load(fr)
                     for k, v in esdjson.items():
                         if k in esds:
-                            warnmsg = "Duplicate esd: %s, overriden." % k
-                            LOG.warning(_(warnmsg))
+                            warnmsg = _("Duplicate esd: %s, overriden.") % k
+                            LOG.warning(warnmsg)
                             esds[k]['status'] = 'Duplicate Definition'
                             desc = 'Definition 1: %s, Definition 2: %s' % (
                                 v, esds[k]['content'])
@@ -155,7 +155,8 @@ class RepoESDs(generic.View):
                                 'content': v
                             }
             except Exception as e:
-                errmsg = "Failed to load esd file '%s': %s." % (path, e)
+                errmsg = _("Failed to load esd file '%(path)s': %(err)s.")\
+                    % {'path': path, 'err': e}
                 LOG.error(errmsg)
                 esds['_FAULT_FILE_%s' % file] = {
                     'status': 'File Error',
@@ -164,9 +165,11 @@ class RepoESDs(generic.View):
 
         return {'items': esds}
 
+
 @urls.register
 class ListenerESDs(generic.View):
-    '''
+    '''API for post and get to listener's ESDS.
+
     '''
 
     url_regex = r'lbaas/listeners/(?P<listener_id>[^/]+)/esds/$'
