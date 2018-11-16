@@ -82,10 +82,11 @@
     }));
 
     it('should define correct table row actions', function() {
-      expect(actions.length).toBe(3);
-      expect(actions[0].template.text).toBe('Edit');
-      expect(actions[1].template.text).toBe('Create Pool');
-      expect(actions[2].template.text).toBe('Delete Listener');
+      expect(actions.length).toBe(4);
+      expect(actions[0].template.text).toBe('Edit Listener');
+      expect(actions[1].template.text).toBe('Edit ESD');
+      expect(actions[2].template.text).toBe('Create Pool');
+      expect(actions[3].template.text).toBe('Delete Listener');
     });
 
     it('should allow editing a listener of an ACTIVE load balancer', function() {
