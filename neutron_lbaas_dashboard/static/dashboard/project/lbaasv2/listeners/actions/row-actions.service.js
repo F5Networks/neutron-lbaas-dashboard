@@ -63,6 +63,13 @@
       allowed: canEdit
     });
 
+    var esd = workflowModal.init({
+      controller: 'EditESDWizardController',
+      message: gettext('The listener ESD has been updated.'),
+      handle: onEdit,
+      allowed: canEdit
+    });
+
     var service = {
       actions: actions,
       init: init
@@ -82,7 +89,12 @@
       return [{
         service: edit,
         template: {
-          text: gettext('Edit')
+          text: gettext('Edit Listener')
+        }
+      },{
+        service: esd,
+        template: {
+          text: gettext('Edit ESD')
         }
       },{
         service: createPoolService.init(loadbalancerId, loadBalancerIsActionable).create,

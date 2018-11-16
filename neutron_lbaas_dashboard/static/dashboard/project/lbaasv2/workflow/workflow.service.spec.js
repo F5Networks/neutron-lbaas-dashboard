@@ -43,7 +43,7 @@
     it('should have default steps defined', function () {
       var workflow = workflowService('My Workflow');
       expect(workflow.steps).toBeDefined();
-      expect(workflow.steps.length).toBe(5);
+      expect(workflow.steps.length).toBe(6);
 
       var forms = [
         'loadBalancerDetailsForm',
