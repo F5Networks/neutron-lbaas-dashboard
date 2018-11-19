@@ -33,7 +33,11 @@
     // the wizard continues to work. Using local var to appease eslint angular/ng_controller_as.
     scope.model = model;
     scope.submit = scope.model.submit;
-    scope.workflow = workflowService(gettext('Create Load Balancer'), 'fa fa-cloud-download');
+    scope.workflow = workflowService(
+      gettext('Create Load Balancer'),
+      'fa fa-cloud-download',
+      ['loadbalancer', 'listener', 'pool', 'members', 'monitor']
+    );
     scope.model.initialize('loadbalancer');
   }
 
