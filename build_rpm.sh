@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 git checkout -- setup.cfg
 rm -rf build dist *.egg *.egg-info
 
@@ -70,3 +72,5 @@ rpmbuild -bb f5-neutron-lbaas-dashboard.spec
 cp ~/rpmbuild/RPMS/noarch/${NEW}*.rpm ./
 
 cd ..
+
+git checkout -- setup.cfg
