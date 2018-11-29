@@ -23,6 +23,8 @@ jobs:
       script: tox -e eslint -vv
     - stage: nodejs-npm-run-test
       script: tox -e karma -vv
+    - stage: trigger-fvt
+      script: ./trigger-fvt.sh
     - stage: build-deploy-rpm
       services: docker
       script:
