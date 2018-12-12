@@ -79,7 +79,7 @@
         description: esd.description,
         position: position
       };
-      return apiService.put('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
+      return apiService.put('/api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
     }
 
     function addListenerESD(listenerId, esd) {
@@ -88,7 +88,7 @@
         description: esd.description,
         position: esd.position
       };
-      return apiService.post('api/lbaas/listeners/' + listenerId + '/esds/', spec);
+      return apiService.post('/api/lbaas/listeners/' + listenerId + '/esds/', spec);
     }
 
     function deleteListenerESD(listenerId, esd) {
@@ -98,7 +98,7 @@
         description: esd.description,
         position: esd.position
       };
-      return apiService.delete('api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
+      return apiService.delete('/api/lbaas/listeners/' + listenerId + '/esds/' + esdId + '/', spec);
     }
   }
 }());
