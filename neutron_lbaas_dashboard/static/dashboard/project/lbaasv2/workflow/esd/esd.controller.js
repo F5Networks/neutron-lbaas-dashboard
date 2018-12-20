@@ -59,18 +59,18 @@
       noneAvailText: gettext('No available ESDs')
     };
     ctrl.lastlog = gettext("");
-    var working = false;
+    ctrl.working = false;
 
     ctrl.allocate = allocate;
     ctrl.deallocate = deallocate;
     ctrl.update = update;
 
     function allocate(data) {
-      if (working) {
+      if (ctrl.working) {
         ctrl.lastlog += " [Wait]";
         return;
       } else {
-        working = true;
+        ctrl.working = true;
       }
 
       var trCtrl = data[0];
@@ -79,7 +79,7 @@
       if (row.status !== 'Normal') {
         ctrl.lastlog = gettext("ESD status is '" +
                        row.status + "', cannot be allocated, fix it first.");
-        working = false;
+        ctrl.working = false;
       } else {
         ctrl.lastlog = gettext("Allocating '" + row.name + "' to the listener ...");
         esdAPI.addListenerESD($scope.model.context.id, row).then(
@@ -87,22 +87,22 @@
             ctrl.lastlog = ctrl.lastlog + " [Done]";
             row.id = result.data.id;
             trCtrl.allocate(row);
-            working = false;
+            ctrl.working = false;
           },
           function(reason) {
             ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
-            working = false;
+            ctrl.working = false;
           }
         );
       }
     }
 
     function deallocate(data) {
-      if (working) {
+      if (ctrl.working) {
         ctrl.lastlog += " [Wait]";
         return;
       } else {
-        working = true;
+        ctrl.working = true;
       }
 
       var trCtrl = data[0];
@@ -113,21 +113,21 @@
         function() {
           ctrl.lastlog = ctrl.lastlog + " [Done]";
           trCtrl.deallocate(row);
-          working = false;
+          ctrl.working = false;
         },
         function(reason) {
           ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
-          working = false;
+          ctrl.working = false;
         }
       );
     }
 
     function update(trCtrl, e, item, collection) {
-      if (working) {
+      if (ctrl.working) {
         ctrl.lastlog += " [Wait]";
         return;
       } else {
-        working = true;
+        ctrl.working = true;
       }
 
       var position = collection.indexOf(item) + 1;
@@ -138,11 +138,11 @@
         function() {
           ctrl.lastlog = ctrl.lastlog + " [Done]";
           trCtrl.updateAllocated(e, item, collection);
-          working = false;
+          ctrl.working = false;
         },
         function(reason) {
           ctrl.lastlog = ctrl.lastlog + " [Failed]: " + reason;
-          working = false;
+          ctrl.working = false;
         }
       );
     }

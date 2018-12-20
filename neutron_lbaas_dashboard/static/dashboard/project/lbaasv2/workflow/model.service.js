@@ -833,7 +833,7 @@
       names0.forEach(function addESD(item) {
         if (names1.indexOf(item) <= -1) {
           model.esds.push({
-            id: names1ids[item] ? names1ids[item] : item,
+            id: item,
             name: item,
             content: response[0].data.items[item].content,
             status: response[0].data.items[item].status,

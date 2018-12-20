@@ -247,62 +247,66 @@
       $provide.value('horizon.app.core.esd', {
         getRepoESDs: function() {
           return {
-            items: {
-              esd_demo_1: {
-                id: 'esd_demo_1',
-                status: 'Normal',
-                content: {
-                  lbaas_cssl_profile: "clientssl",
-                  lbaas_ctcp: "tcp-mobile-optimized",
-                  lbaas_fallback_persist: "source_addr",
-                  lbaas_irule: [
-                    "_sys_https_redirect"
-                  ],
-                  lbaas_persist: "hash",
-                  lbaas_policy: [],
-                  lbaas_sssl_profile: "serverssl",
-                  lbaas_stcp: "tcp-lan-optimized"
-                }
-              },
-              esd_demo_3: {
-                id: 'esd_demo_3',
-                status: 'Duplicate Definition',
-                content: {
-                  lbaas_cssl_profile: "clientssl",
-                  lbaas_ctcp: "tcp-mobile-optimized",
-                  lbaas_sssl_profile: "serverssl"
+            data: {
+              items: {
+                esd_demo_1: {
+                  id: 'esd_demo_1',
+                  status: 'Normal',
+                  content: {
+                    lbaas_cssl_profile: "clientssl",
+                    lbaas_ctcp: "tcp-mobile-optimized",
+                    lbaas_fallback_persist: "source_addr",
+                    lbaas_irule: [
+                      "_sys_https_redirect"
+                    ],
+                    lbaas_persist: "hash",
+                    lbaas_policy: [],
+                    lbaas_sssl_profile: "serverssl",
+                    lbaas_stcp: "tcp-lan-optimized"
+                  }
+                },
+                esd_demo_3: {
+                  id: 'esd_demo_3',
+                  status: 'Duplicate Definition',
+                  content: {
+                    lbaas_cssl_profile: "clientssl",
+                    lbaas_ctcp: "tcp-mobile-optimized",
+                    lbaas_sssl_profile: "serverssl"
+                  }
                 }
               }
             }
           };
         },
         getListenerESDs: function() {
-          return [
-            {
-              action: "REJECT",
-              admin_state_up: true,
-              description: "",
-              id: "9066c5e1-6542-4b3c-aeb2-bd56b3496603",
-              name: "esd_demo_8",
-              position: 3,
-              redirect_pool_id: null,
-              redirect_url: null,
-              rules: [],
-              tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
-            },
-            {
-              action: "REJECT",
-              admin_state_up: true,
-              description: "",
-              id: "d5d77d87-0a07-4124-8b16-6b47a6d72cd6",
-              name: "esd_not_exists",
-              position: 1,
-              redirect_pool_id: null,
-              redirect_url: null,
-              rules: [],
-              tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
-            }
-          ];
+          return {
+            data: [
+              {
+                action: "REJECT",
+                admin_state_up: true,
+                description: "",
+                id: "9066c5e1-6542-4b3c-aeb2-bd56b3496603",
+                name: "esd_demo_1",
+                position: 1,
+                redirect_pool_id: null,
+                redirect_url: null,
+                rules: [],
+                tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
+              },
+              {
+                action: "REJECT",
+                admin_state_up: true,
+                description: "",
+                id: "d5d77d87-0a07-4124-8b16-6b47a6d72cd6",
+                name: "esd_not_exists",
+                position: 2,
+                redirect_pool_id: null,
+                redirect_url: null,
+                rules: [],
+                tenant_id: "fde45211da0a44ecbf38cb0b644ab30d"
+              }
+            ]
+          };
         }
       });
 
@@ -857,6 +861,20 @@
         expect(model.context.resource).toBe('pool');
         expect(model.context.id).toBeDefined();
         expect(model.context.submit).toBeDefined();
+      });
+    });
+
+    describe('Post initialize model (edit esd)', function() {
+
+      beforeEach(function() {
+        includeChildResources = false;
+        model.initialize('esd', '1234');
+        scope.$apply();
+      });
+
+      it('should initialize model properties', function() {
+        expect(model.initializing).toBe(false);
+        expect(model.initialized).toBe(true);
       });
     });
 
@@ -1917,6 +1935,19 @@
         expect(finalSpec.monitor.interval).toBe(1);
         expect(finalSpec.monitor.retry).toBe(1);
         expect(finalSpec.monitor.timeout).toBe(1);
+      });
+    });
+
+    describe('Model submit function (edit esd)', function() {
+
+      beforeEach(function() {
+        includeChildResources = false;
+        model.initialize('esd', '1234');
+        scope.$apply();
+      });
+
+      it('should do nothing', function() {
+        model.submit();
       });
     });
 
