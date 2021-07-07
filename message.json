@@ -1,0 +1,50 @@
+{
+	"@context": "https://schema.org/extensions",
+	"@type": "MessageCard",
+	"themeColor": "0072C6",
+	"title": "New Commit: TRAVIS_COMMIT_MESSAGE",
+	"text": "TRAVIS_COMMIT",
+	"sections": [
+    {
+        "activityTitle": "Details",
+        "facts": [
+            {
+                "name": "Committer:",
+                "value": "Qin Zhao"
+            },
+        	{
+                "name": "Commit",
+                "value": "TRAVIS_PULL_REQUEST_SHA"
+            },
+            {
+                "name": "Branch",
+                "value": "TRAVIS_BRANCH"
+            }
+        ],
+        "text": "TRAVIS_COMMIT_MESSAGE"
+    }
+    ],
+    "potentialAction": [
+    {
+      "@type": "OpenUri",
+      "name": "View Pull Request",
+      "targets": [
+        { "os": "default", "uri": "https://gitswarm.f5net.com/" }
+      ]
+    },
+    {
+      "@type": "OpenUri",
+      "name": "View Travis CI Build",
+      "targets": [
+        { "os": "default", "uri": "https://gitswarm.f5net.com/" }
+      ]
+    },
+    {
+      "@type": "OpenUri",
+      "name": "Run F5 OpenStack Pipeline",
+      "targets": [
+        { "os": "default", "uri": "FVT_URL" }
+      ]
+    }
+  ]
+}
